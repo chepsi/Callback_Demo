@@ -17,27 +17,35 @@ constructor(private val application: Application) {
             application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val builder: NetworkRequest.Builder = NetworkRequest.Builder()
 
-        cm.registerNetworkCallback(
-            builder.build(),
-            object : ConnectivityManager.NetworkCallback() {
-
-                override fun onAvailable(network: Network) {
-                    Variables.isNetworkConnected = true
-                }
-
-                override fun onLost(network: Network) {
-                    Variables.isNetworkConnected = false
-                }
-            })
+        /**Check if version code is greater than API 24*/
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            cm.registerDefaultNetworkCallback(networkCallback)
+        } else {
+            cm.registerNetworkCallback(
+                builder.build(), networkCallback
+            )
+        }
     }
+
     fun stopNetworkCallback() {
         val cm: ConnectivityManager =
             application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         cm.unregisterNetworkCallback(ConnectivityManager.NetworkCallback())
     }
 
-    //Deprecated in API 29
-    fun oldNetwork(){
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+
+        override fun onAvailable(network: Network) {
+            Variables.isNetworkConnected = true
+        }
+
+        override fun onLost(network: Network) {
+            Variables.isNetworkConnected = false
+        }
+    }
+
+    /**Deprecated Code*/
+    fun oldNetwork() {
         fun isNetworkAvailable(): Boolean {
             val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE)
             return if (connectivityManager is ConnectivityManager) {
